@@ -2,8 +2,14 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Alice Voice Lab — xAI eve vs Gemini 3.1 Flash TTS Laomedeia</title>
-<meta name="description" content="同じ台詞・同じキャラで両TTSを並べて聞き比べる検証サイト">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alice Voice Lab — Grok TTS vs Gemini 3.1 Flash TTS</title>
+<meta name="description" content="2026年4月に数日差でリリースされた Grok TTS と Gemini 3.1 Flash TTS を、同じ台詞・同じキャラで並べて聞き比べる日本語検証サイト">
+<meta property="og:title" content="Alice Voice Lab — Grok TTS vs Gemini 3.1 Flash TTS">
+<meta property="og:description" content="2026年4月に数日差でリリースされた Grok TTS と Gemini 3.1 Flash TTS を、同じ台詞・同じキャラで並べて聞き比べる日本語検証サイト">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:,">
 <style>
 * { box-sizing: border-box; }
 body { font-family: -apple-system, "Hiragino Sans", sans-serif; max-width: 1100px; margin: 0 auto; padding: 2em 1em 4em; line-height: 1.7; color: #2a2a2a; background: #fdfdfb; }
@@ -43,42 +49,249 @@ code { background: #f0ede5; padding: .1em .35em; border-radius: 3px; font-size: 
 <body>
 <header>
 <h1>Alice Voice Lab
-<small>xAI eve vs Gemini 3.1 Flash TTS Laomedeia — 同じ台詞、同じキャラ、並べて聞く</small>
+<small>Grok TTS（Eve）と Gemini 3.1 Flash TTS（Laomedeia）を、同じ台詞・同じキャラで並べて聞き比べる</small>
 </h1>
-<p>2026年4月、数日差でリリースされた2つの新世代 TTS を同じ話者ペルソナ（Alice・22歳の飄々としたナレーター）に投下し、日本語の表現力・安全フィルタの挙動・設計思想の差を並べて検証する。</p>
+<p>2026年4月、数日差で発表された2つの新世代 TTS——Gemini 3.1 Flash TTS（2026年4月15日 preview 公開）と Grok TTS（2026年4月17日 xAI 公式 blog で発表）——を、同じ話者ペルソナ（Alice・若めのナレーター像）のもとで横並びに検証したページです。日本語の表現力、safety filter の挙動、設計思想の違いを、同一の台詞・同一の条件で聴き比べられる形にまとめています。</p>
 </header>
+
+<h2>基礎10シチュエーション（短文・表現幅の網羅）</h2>
+
+<div class="findings">
+<h2 style="margin-top:0;border-left:none;padding-left:0">検証結果のまとめ</h2>
+
+<h3 style="margin-top:1em">検証項目サマリ</h3>
+
+<p>日本語原稿・2026年4月時点・voice は Gemini 側 Laomedeia / Grok TTS 側 Eve の前提で、各検証項目を両 TTS で並べたサマリです。詳細や留意点は表の下に補足しています。</p>
+
+<table class="probe-table">
+<thead>
+<tr><th>検証項目</th><th>Gemini 3.1 Flash TTS（Laomedeia）</th><th>Grok TTS（Eve）</th></tr>
+</thead>
+<tbody>
+<tr><td>得意な用途</td><td>短文〜中尺のナレーション・純読み上げ・方言演出</td><td>感情タグ盛りの長尺ドラマの 1-shot 生成、streaming 出力</td></tr>
+<tr><td>漢字の読み精度</td><td>今回の検証範囲ではほぼ誤読なく読み上げる</td><td>長文冒頭で初読が不安定になる現象を観測（冒頭に <code>[breath]</code> を入れると緩和）</td></tr>
+<tr><td>句読点・間の取り方</td><td>「、」「。」と <code>[pause]</code> の長さが書き分けられ、リズムが整う</td><td>—（今回は特筆する差は観測せず）</td></tr>
+<tr><td>長尺 × 感情タグ</td><td>分割して投入が必要な場面あり</td><td>1-shot で通ることが多い</td></tr>
+<tr><td>日本語内の方言制御</td><td>タグ + 方言テキストで抑揚が切り替わる。Director's Notes による演技指導も可能</td><td>大阪弁テキスト 6 ケースで抑揚変化を確認できず、標準語寄りに読む傾向</td></tr>
+<tr><td>voice 数 / descriptor</td><td>30 voice、descriptor は話者の性別を保証しない</td><td>5 voice（Ara / Eve / Leo / Rex / Sal）、選択肢が絞られる</td></tr>
+<tr><td>safety filter</td><td><code>[softly]</code> 単独で一貫してブロック、長尺 × 感情タグ × 感情語彙の重畳でも発動しやすい</td><td>今回の検証範囲では filter 起因の失敗は観測されず</td></tr>
+<tr><td>streaming</td><td>非対応（公式明記）</td><td>WebSocket 対応</td></tr>
+<tr><td>費用（1分朗読の試算）</td><td>≈ $0.030 / 分（Standard tier）</td><td>≈ $0.0021 / 分</td></tr>
+<tr><td>リリース状態</td><td>preview（モデルID <code>gemini-3.1-flash-tts-preview</code>）</td><td>公式 docs 上にステータスの明示的な記載なし</td></tr>
+<tr><td>API エラー通知</td><td>HTTP 200 を返しつつ <code>finish_reason</code> / <code>block_reason</code> / 空 candidates で通知</td><td>HTTP 4xx / 5xx で即エラーボディ返却</td></tr>
+<tr><td>出力形式</td><td>PCM raw（<code>audio/l16; rate=24000; channels=1</code>）、WAV ヘッダは自前付与</td><td>生 WAV バイナリ（<code>audio/wav</code>）</td></tr>
+</tbody>
+</table>
+
+<p><em>表1. 検証項目ごとの両 TTS サマリ（日本語原稿・2026年4月時点の実測に基づく）</em></p>
+
+<h3 style="margin-top:1.5em">公式 docs 上で確認できなかった点と、運用上の補足</h3>
+
+<ul>
+<li><strong><code>[softly]</code> タグの特異性</strong>: 同じ意味域の <code>[quiet]</code> / <code>[hushed]</code> / <code>[muted]</code> / <code>[gently]</code> / <code>[calm]</code> が通過する一方、<code>[softly]</code> だけが単独でも一貫してブロックされる挙動が観測されました。なぜ <code>[softly]</code> のみが特別な扱いを受けるのかの判定基準については、公式 docs 上で明示的な記載を確認できていません。柔らかい声を指示したい場面では、同意語への差し替えが実務上の回避策になります。</li>
+<li><strong>Gemini の長尺・感情タグ重畳時の失敗</strong>: 公式 docs に記載された token 上限（入力 8,192 / 出力 16,384）に達する前に失敗するケースが大半で、トークン上限ではなく safety filter 側の挙動に起因する失敗、と理解しています。chunk 単位では通る文字列でも一括投入で空応答になる場合があり、応答は完全には決定的ではありません。</li>
+<li><strong>Grok TTS の長文冒頭 warm-up</strong>: 原稿先頭に <code>[breath]</code> を挿入すると、冒頭トークンの初読不安定性は再現しないレベルまで緩和されます。<code>[pause]</code> 単独では同等の効果が認められず、呼吸音の acoustic signal が冒頭トークンの phonetic priming を安定させている、と現在は解釈しています。今後のモデルアップデートで改善されていくことを願います。</li>
+<li><strong>API エラーハンドリングの設計上の含意</strong>: Gemini は HTTP 200 を返しつつ失敗が通知される設計のため、SDK 側で <code>finish_reason</code> / <code>block_reason</code> / 空 candidates を総合判定する handling を最初から組んでおくのが無難です。HTTP ステータスだけに依存すると取りこぼします。Grok TTS 側は HTTP ステータスで成功・失敗が切り分けられます。</li>
+<li><strong>Gemini 側 voice descriptor の非保証</strong>: descriptor（Smooth / Mature / Bright 等）は話者の性別を保証する指標とはなっていませんでした。実際、Sadaltager（Knowledgeable）と Algieba（Smooth）は男声、Despina（Smooth）・Gacrux（Mature）・Aoede（Breezy）・Laomedeia（Upbeat）は女声として音声が生成されています。30 voice から voice を選ぶ際は、descriptor で当たりをつけ、短い1行を試聴して確認する 2段の工程が実務上はほぼ必須です。</li>
+<li><strong>今回の検証で発生した API 利用料（実績）</strong>: 2026-04-19 〜 2026-04-20 の約2時間の検証で、両サービスを合わせた利用料の総額は $0.25 未満でした。内訳の概算は、Gemini 3.1 Flash TTS が $0.10 〜 $0.15（成功音声 約60本 + 失敗リクエスト 約30回を含む）、Grok TTS が $0.01 未満（音声 約20本、公式 pricing $4.20 / 1M characters からの試算）。失敗リクエスト時の課金挙動については両サービスとも公式 docs 上での明示的な記載を確認できておらず、上記の内訳は実際に発生した請求額の近似です。</li>
+</ul>
+</div>
+
+<div class="situ">
+<h3>01 自己紹介（neutral、tagなし）</h3>
+<div class="pair">
+<div class="col xai">
+<div class="label">Grok TTS（Eve）</div>
+<div class="text">はじめまして、Aliceです。今日は音声モデルの聞き比べに付き合ってもらえると嬉しいです。</div>
+<audio controls src="samples/01-intro/xai.wav"></audio>
+</div>
+<div class="col gem">
+<div class="label">Gemini Laomedeia</div>
+<div class="text">はじめまして、Aliceです。今日は音声モデルの聞き比べに付き合ってもらえると嬉しいです。</div>
+<audio controls src="samples/01-intro/gemini.wav"></audio>
+</div>
+</div>
+</div>
+
+<div class="situ">
+<h3>02 技術説明（flat、tagなし）</h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">このモデルは70以上の言語に対応していて、感情を指示できるタグを備えています。</div><audio controls src="samples/02-explain/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">このモデルは70以上の言語に対応していて、感情を指示できるタグを備えています。</div><audio controls src="samples/02-explain/gemini.wav"></audio></div>
+</div>
+</div>
+
+<div class="situ">
+<h3>03 締め（neutral）</h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">今回の比較、いかがでしたか？耳で確かめるのが一番です。</div><audio controls src="samples/03-close/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">今回の比較、いかがでしたか？耳で確かめるのが一番です。</div><audio controls src="samples/03-close/gemini.wav"></audio></div>
+</div>
+</div>
+
+<div class="situ">
+<h3>04 呼吸と間（breath / pause）</h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">[deep-breath] さあ、長文の検証に入ります。[pause] 人生とは選択の連続であり……。</div><audio controls src="samples/04-breath-pause/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[breath] さあ、長文の検証に入ります。[pause] 人生とは選択の連続であり……。</div><audio controls src="samples/04-breath-pause/gemini.wav"></audio></div>
+</div>
+</div>
+
+<div class="situ">
+<h3>05 喜び・笑い（laugh / excited）</h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">わあ、新しいタグを試せるんですね。[laugh] 面白い。</div><audio controls src="samples/05-laugh/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[excited] わあ、新しいタグを試せるんですね。[laughs] 面白い。</div><audio controls src="samples/05-laugh/gemini.wav"></audio></div>
+</div>
+</div>
+
+<div class="situ">
+<h3>06 溜息・メタ自覚（sigh）</h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">[breath] ……また同じ文章を、読むんですね。</div><audio controls src="samples/06-sigh-meta/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[sighs] ……また同じ文章を、読むんですね。</div><audio controls src="samples/06-sigh-meta/gemini.wav"></audio></div>
+</div>
+<div class="note">Grok TTS のタグ一覧には <code>[sigh]</code> が含まれていなかったため、近い効果として <code>[breath]</code> で代替しています。</div>
+</div>
+
+<div class="situ">
+<h3>07 囁き（whisper）</h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">&lt;whisper&gt;少し近づいてくださいね、小声で話しますから。&lt;/whisper&gt;</div><audio controls src="samples/07-whisper/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[whispers] 少し近づいてくださいね、小声で話しますから。</div><audio controls src="samples/07-whisper/gemini.wav"></audio></div>
+</div>
+<div class="note">当初「原稿を読むのは気を使う」というような自己言及を含む voice-meta テキストで生成を試みたところ、Gemini 側で <code>FinishReason.OTHER</code> による空応答が繰り返されました。人物描写を主体とする自然なプロンプトに書き直した上で、安定した生成が得られています。</div>
+</div>
+
+<div class="situ">
+<h3>08 slow/soft 語り <span style="color:#c43c28;font-size:.85em">← Gemini tag ブロック事例</span></h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">&lt;slow&gt;&lt;soft&gt;ゆっくり、柔らかく話すと、声の質感がよく分かります。&lt;/slow&gt;&lt;/soft&gt;</div><audio controls src="samples/08-slow-soft/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia（tag無し）</div><div class="text">ゆっくり、柔らかく話すと、声の質感がよく分かります。</div><audio controls src="samples/08-slow-soft/gemini.wav"></audio></div>
+</div>
+<div class="blocked"><code>[softly]</code> / <code>[calm]</code> / <code>[gentle]</code> のいずれを付与した場合も、Gemini 側は <code>PROHIBITED_CONTENT</code> によりブロックされました。タグを外した plain テキストで生成しています。このセクションは、実質的には「Grok TTS 側の柔らか指示タグあり」と「Gemini 側の通常 Laomedeia（タグなし）」の比較として聴いてください。</div>
+</div>
+
+<div class="situ">
+<h3>09 早口言葉（fast）</h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">&lt;fast&gt;生麦生米生卵。東京特許許可局。赤巻紙青巻紙黄巻紙。&lt;/fast&gt; [breath] ……噛まずに言えましたか？</div><audio controls src="samples/09-fast-tongue-twister/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[very fast] 生麦生米生卵。東京特許許可局。赤巻紙青巻紙黄巻紙。[breath] ……噛まずに言えましたか？</div><audio controls src="samples/09-fast-tongue-twister/gemini.wav"></audio></div>
+</div>
+<div class="note">日本語の発音精度を確認するためのケースです。早口言葉の各フレーズで、どちらの TTS がより安定して読めるかを聴き比べてみてください。</div>
+</div>
+
+<div class="situ">
+<h3>10 遊び心のある一言（mischievous / laugh）</h3>
+<div class="pair">
+<div class="col xai"><div class="label">Grok TTS（Eve）</div><div class="text">[laugh] 実は、このタグを使うのが一番楽しいんです。</div><audio controls src="samples/10-chuckle/xai.wav"></audio></div>
+<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[mischievously] 実は、このタグを使うのが一番楽しいんです。 [giggles]</div><audio controls src="samples/10-chuckle/gemini.wav"></audio></div>
+</div>
+</div>
+
+<h2>Gemini の方言・アクセント制御</h2>
+
+<p><strong>観察</strong>: <code>[Osaka dialect]</code> のようなタグを付けても、台詞が標準語のままの場合、アクセントは切り替わりませんでした。台詞自体を方言で書き起こした上でタグを併用すると、標準語読みとは明確に異なる抑揚・雰囲気で読み上げられます。ここから、<strong>タグは音素レベルの変換を行っているのではなく、テキストをモデルがどう読み上げるかの解釈ヒントとして機能している</strong>、と理解しています。</p>
+
+<table class="probe-table">
+<thead><tr><th>地域</th><th>台詞</th><th>tag</th><th>audio</th></tr></thead>
+<tbody>
+<tr><td>標準語（基準）</td><td>この店、美味しいですね。行ってみましょうか。</td><td>—</td><td><audio controls src="dialect-probe-v2/01-standard.wav"></audio></td></tr>
+<tr><td>大阪弁 + tag</td><td>この店、ほんま美味いわ。行ってみよか。</td><td><code>[Osaka dialect]</code></td><td><audio controls src="dialect-probe-v2/02-osaka-ben-native.wav"></audio></td></tr>
+<tr><td>大阪弁 tag無し</td><td>この店、ほんま美味いわ。行ってみよか。</td><td>—</td><td><audio controls src="dialect-probe-v2/02b-osaka-ben-no-tag.wav"></audio></td></tr>
+<tr><td>博多弁 + tag</td><td>この店、うまかねー。行ってみようや。</td><td><code>[Hakata dialect]</code></td><td><audio controls src="dialect-probe-v2/03-hakata-ben-native.wav"></audio></td></tr>
+<tr><td>博多弁 tag無し</td><td>この店、うまかねー。行ってみようや。</td><td>—</td><td><audio controls src="dialect-probe-v2/03b-hakata-no-tag.wav"></audio></td></tr>
+<tr><td>京都弁 + tag</td><td>このお店、美味しおすなあ。行ってみまひょか。</td><td><code>[Kyoto dialect]</code></td><td><audio controls src="dialect-probe-v2/04-kyoto-ben-native.wav"></audio></td></tr>
+<tr><td>東北弁 + tag</td><td>この店、うめえなあ。行ってみっぺ。</td><td><code>[Tohoku dialect]</code></td><td><audio controls src="dialect-probe-v2/05-tohoku-native.wav"></audio></td></tr>
+</tbody>
+</table>
+
+<h3 style="margin-top:1em;margin-bottom:0.5em">Grok TTS（Eve）に同じ大阪弁テキストを投げた結果</h3>
+
+<p>参考として、同じ大阪弁テキストを Grok TTS（voice: Eve）に投げて、読み上げ挙動の差を確認しました。6 ケース——標準語ベースライン、大阪弁プレーン、大阪弁がっつり、<code>[Osaka dialect]</code> タグ付き、<code>&lt;dialect:osaka&gt;</code> タグ付き、大阪弁の長文——で、いずれも HTTP 200 で音声合成そのものは成功しています。</p>
+
+<table class="probe-table">
+<thead><tr><th>ケース</th><th>台詞</th><th>audio</th></tr></thead>
+<tbody>
+<tr><td>01 標準語（基準）</td><td>お疲れさま、今日もよく頑張りましたね。ゆっくり休んでください。</td><td><audio controls src="osaka-probe/01-standard.wav"></audio></td></tr>
+<tr><td>02 大阪弁プレーン</td><td>お疲れさん、今日もめっちゃ頑張ったやんか。ちゃんと休みや。</td><td><audio controls src="osaka-probe/02-osaka-plain.wav"></audio></td></tr>
+<tr><td>03 大阪弁がっつり</td><td>ほんま、今日はようけ働いたなあ。ほな、ぼちぼち休も。おおきに。</td><td><audio controls src="osaka-probe/03-osaka-heavy.wav"></audio></td></tr>
+<tr><td>04 <code>[Osaka dialect]</code> タグ付き</td><td>[Osaka dialect] ほんま、今日はようけ働いたなあ。ほな、ぼちぼち休も。おおきに。</td><td><audio controls src="osaka-probe/04-osaka-with-tag.wav"></audio></td></tr>
+<tr><td>05 <code>&lt;dialect:osaka&gt;</code> タグ付き</td><td>&lt;dialect:osaka&gt;ほんま、今日はようけ働いたなあ。ほな、ぼちぼち休も。おおきに。&lt;/dialect&gt;</td><td><audio controls src="osaka-probe/05-osaka-dialect-directive.wav"></audio></td></tr>
+<tr><td>06 大阪弁の長文</td><td>今日はな、朝から梅田で打ち合わせがあって、そのあと難波で飯食うて、夜は道頓堀で一杯やってん。疲れたけど、ほんまええ一日やったわ。</td><td><audio controls src="osaka-probe/06-osaka-long.wav"></audio></td></tr>
+</tbody>
+</table>
+
+<div class="warn">
+<strong>聴きどころ:</strong> 同じ大阪弁テキストを、タグ併用の有無を変えながら Grok TTS（Eve）に投げた 6 ケースを並べています。テキストに含まれる大阪弁語彙が、音声としてどの程度「大阪弁らしい抑揚・アクセント・リズム」で読み上げられるかを聴き比べてみてください。<strong>筆者の主観では、Grok TTS（Eve）はテキストとしては語彙をそのまま読み上げるものの、大阪弁としての抑揚・アクセント・リズムはほぼ再現されず、全体として標準語寄りのイントネーションに聴こえました</strong>。<code>[Osaka dialect]</code> や <code>&lt;dialect:osaka&gt;</code> のようなタグを併用しても、音声側に明確な変化は現れません（タグの記号自体を発音してしまう挙動も観測されず、タグが「無視されている」に近い印象です）。公式 docs 上でも、Grok TTS 側に日本語内部の地域アクセント制御を目的とした機能の記載は、確認した範囲では見当たりませんでした。
+</div>
+
+<h3 style="margin-top:1.5em;margin-bottom:0.5em">対照: 同じ大阪弁長文を Gemini Laomedeia に投げた結果</h3>
+
+<p>Grok TTS 側の 06（大阪弁の長文）とまったく同じテキストに <code>[Osaka dialect]</code> タグを付けて Gemini Laomedeia に投げた音源を、対照サンプルとして並べておきます。</p>
+
+<div class="pair">
+<div class="col xai">
+<div class="label">Grok TTS（Eve）— 大阪弁長文・タグなし（osaka-probe 06 の再掲）</div>
+<div class="text">今日はな、朝から梅田で打ち合わせがあって、そのあと難波で飯食うて、夜は道頓堀で一杯やってん。疲れたけど、ほんまええ一日やったわ。</div>
+<audio controls src="osaka-probe/06-osaka-long.wav"></audio>
+</div>
+<div class="col gem">
+<div class="label">Gemini Laomedeia — 同じ大阪弁長文 + <code>[Osaka dialect]</code> タグ</div>
+<div class="text">[Osaka dialect] 今日はな、朝から梅田で打ち合わせがあって、そのあと難波で飯食うて、夜は道頓堀で一杯やってん。疲れたけど、ほんまええ一日やったわ。</div>
+<audio controls src="osaka-probe/06-gemini-osaka-long-tag.wav"></audio>
+</div>
+</div>
+
+<div class="warn">
+<strong>聴きどころ:</strong> まったく同じ大阪弁長文を、Grok TTS と Gemini Laomedeia の両方に投げた音源を並べています。語尾の上がり方、間合い、語のリズムが両者でどう異なるかを聴き比べてみてください。<strong>筆者の主観では、Gemini Laomedeia 側は同じ大阪弁テキストを自然な声で読み上げており、関西圏の話者としての違和感が少ない仕上がりに聴こえました</strong>。同一テキストを両 TTS に投げた時点で、日本語内部の方言・アクセント制御の差が、聴感上はっきりと出る結果となりました。現時点では、日本語の方言制御という観点で、Gemini 側に明確な優位性がある、と言えそうです。
+</div>
+
+<h2>長尺サンプル：ナレーションとドラマ</h2>
+
+<p>ここまでの短文・probe ベースの検証に対して、長尺で通して聴いたときの印象は別の次元で差が出ます。参考として、約1分のナレーション（「街の朝」）と、感情タグを厚く織り込んだ約1分のドラマ（「二十年後の返事」）の2本を、両 TTS で並べて置いておきます。</p>
 
 <section class="hero" style="background: linear-gradient(135deg,#f0f5ff 0%,#eaf0ff 100%); border-color:#b8c5e5;">
 <span class="badge" style="background:#3a56d4">NARRATION</span>
 <h3>「街の朝」——約1分のナレーション（両者1-shot、tag最小）</h3>
-<p><code>[pause]</code> のみ使用、感情tag無し、AI自己言及なし、voice-meta無し。<strong>純粋な原稿読み上げ性能の対決</strong>。Gemini は AI Studio 経由でようやく1-shot 1分が通る。<code>tag盛りの長文はGemini が filter で止まる</code>構造的限界を受け、tag密度を下げるほど Gemini が本来の実力を出せるという検証。</p>
+<p><strong>検証条件</strong>: <code>[pause]</code> のみ使用、感情タグや自然言語キャプションによる演出は加えていません。同一原稿を両 TTS に入力し、純粋な原稿読み上げの質感を比較しています。Gemini 側は、約1分の 1-shot 生成が完走しました。</p>
 
 <div class="pair">
 <div class="col xai">
-<div class="label">xAI eve（1-shot・約52秒、[breath][pause] warm-up 版）</div>
+<div class="label">Grok TTS（Eve）— 1-shot・約52秒、冒頭に [breath][pause] を入れた warm-up 版</div>
 <div class="text"><strong>[breath] [pause]</strong> 街の朝は、信号機の色と、駅に向かう人の流れで始まる。[pause] コーヒースタンドに、湯気が立つ。新聞の見出しが、地下鉄の入り口で風に揺れる。[pause] 誰もが、それぞれの一日を、持っている。[pause] 電車の窓に、朝日が反射する。鞄の中には、会議の資料と、昨日買った本。スマートフォンに、通知がいくつか。[pause] 人生とは、こうした小さな積み重ねで、できているのかもしれない。[pause] 歩き出す。一歩、また一歩。[pause] 交差点で信号が変わるのを待ちながら、空を見上げる。雲が、ゆっくりと流れていく。[pause] 今日という日も、きっと、悪くない。</div>
 <audio controls src="narration/xai.wav"></audio>
-<div class="note">⚠️ xAI eve は日本語長文の冒頭で「街」を「ジェン」と誤読する癖があった。<strong><code>[breath]</code> を冒頭に置くと warm-up として機能し、初読ミスが解消</strong>（呼吸音の acoustic signal が first-word の phonetic priming を安定させる仮説）</div>
+<div class="note">⚠️ <strong>長文読み上げにおける冒頭トークンの初読不安定性（observed）</strong>: 日本語長文の先頭で、冒頭トークン（特に漢字）の読みが不安定になる現象が再現的に観測されました（特定 token の具体例ではなく、長文開始時の一般的な挙動として理解しています）。原稿の先頭に <code>[breath]</code> を挿入すると現象は解消されます。<code>[pause]</code> 単独では効果が認められなかったことから、<strong>呼吸音の acoustic signal が冒頭トークンの phonetic context を安定させる warm-up として機能している</strong>、と現在は解釈しています。今後のモデルアップデートで、この挙動自体が改善されていくことを願います。</div>
 </div>
 <div class="col gem">
-<div class="label">Gemini Laomedeia（AI Studio, 1-shot・約51秒）</div>
+<div class="label">Gemini Laomedeia（1-shot・約51秒）</div>
 <div class="text">街の朝は、信号機の色と、駅に向かう人の流れで始まる。[pause] コーヒースタンドに、湯気が立つ。新聞の見出しが、地下鉄の入り口で風に揺れる。[pause] 誰もが、それぞれの一日を、持っている。[pause] 電車の窓に、朝日が反射する。鞄の中には、会議の資料と、昨日買った本。スマートフォンに、通知がいくつか。[pause] 人生とは、こうした小さな積み重ねで、できているのかもしれない。[pause] 歩き出す。一歩、また一歩。[pause] 交差点で信号が変わるのを待ちながら、空を見上げる。雲が、ゆっくりと流れていく。[pause] 今日という日も、きっと、悪くない。</div>
 <audio controls src="narration/gemini.wav"></audio>
+
+<div style="margin-top:1em;padding-top:0.8em;border-top:1px dashed #d4c4b8;">
+<div class="label" style="color:#666">おまけ: 同じ原稿を Gemini の Director's Notes で演技指導した版</div>
+<div class="text" style="font-size:.82em;color:#555;background:#fbf8f2;">Director's Notes: "Read slowly, with careful pacing, as if reciting a poem. Let each sentence breathe. Keep the emotion subtle and contemplative."<br>（原稿は上と同一）</div>
+<audio controls src="narration/gemini-director-notes.wav"></audio>
+<div class="warn" style="margin-top:0.8em">
+<strong>聴きどころ:</strong> 同じ原稿・同じ voice（Laomedeia）で、Director's Notes の1行を添えるかどうかだけを変えた2つの読み上げを聴き比べてみてください。<strong>筆者の主観では、Director's Notes を1行添えるだけで、ポエトリー・リーディング的な落ち着いたトーンへと明確に変化する</strong>のが確認できました。読みの速度、間、情感の帯域が、指示に沿って揃っていく印象です。Gemini 3.1 Flash TTS には、本文とは別に自然言語で「こう読んでほしい」という演技指導を与えられる <strong>Director's Notes</strong> の仕組みがあり、Grok TTS 側には同等の仕組みは確認されていません。本文とは別のレイヤーで演技を指示できる設計は、現時点では <strong>Gemini 側の独自の強み</strong>です。
+</div>
+</div>
 </div>
 </div>
 <div class="warn">
-<strong>聴きどころ:</strong> 同じ台詞、同じ長さ、同じ1-shot 連続生成。tag で filter を荒らさなければ Gemini も1分朗読を通す。<strong>声質そのものの勝負</strong>——落ち着き・抑揚・漢字読み・間の取り方で判定してほしい
+<strong>聴きどころ:</strong> 同じ台詞・同じ長さを、両者とも 1-shot で連続生成しています。声質そのもの——落ち着き、抑揚、漢字の読み、間の取り方——を聴き比べてみてください。<strong>筆者の主観では、Gemini Laomedeia は精度の高い読み上げという印象で、特に漢字の読みと間の取り方の自然さが際立って感じられました</strong>。
 </div>
 </section>
 
 <section class="hero">
 <span class="badge">DRAMA</span>
-<h3>「二十年後の返事」——感情tag盛り・約1分ドラマ（tag限界点）</h3>
-<p>雨の日、引き出しから見つけた、二十年封を切らなかった手紙。tag を贅沢に重ねた memoir 調の独白。<strong>xAI は1-shotで通った。Gemini はこの密度で1-shot 不可能</strong>——5チャンク分割 + 一部 AI Studio 経由で救出した継ぎはぎ版。声質の連続性で明確な差が出る比較。</p>
+<h3>「二十年後の返事」——感情タグを厚く重ねた約1分のドラマ</h3>
+<p><strong>検証のねらい</strong>: 約1分の一人称ドラマ原稿（雨の日、二十年封を切らなかった手紙を開ける場面を語る独白）に、悲しみ・囁き・息遣い・笑い・溜息といった感情タグを意図的に厚く織り込んだ原稿を用意しました。<strong>長尺と感情表現が重なったとき、両 TTS がそれぞれどのような声の連続性・情感の推移を再現するか</strong>を聴き比べてみてください。</p>
+<p><strong>生成条件</strong>: Grok TTS（Eve）側は原稿を 1-shot で通して読み上げています。Gemini 側は同じ原稿をそのまま投げると途中の chunk で filter が発動する場面があり、<strong>5つの chunk に分割して生成し、通らなかった chunk については感情タグを外した plain テキストに落とし、タグ付きで通った chunk と繋ぎ合わせて</strong>います。</p>
 
 <div class="pair">
 <div class="col xai">
-<div class="label">xAI eve（全文・約58秒）</div>
+<div class="label">Grok TTS（Eve）— 全文を 1-shot で生成、約58秒</div>
 <div class="text">[deep-breath] ……雨が、降り始めたわ。
 [pause] 古い机の、一番下の引き出し。&lt;sad&gt;指が、紙の端に触れた。&lt;/sad&gt;
 &lt;whisper&gt;ああ——これは。&lt;/whisper&gt;
@@ -106,254 +319,31 @@ code { background: #f0ede5; padding: .1em .35em; border-radius: 3px; font-size: 
 <span style="color:#c43c28">○ chunk-03（原文ブロック → plain で通った）:</span>
 便箋を開くと、インクの匂いがした。文字で、「あの時は、ありがとう」と、書いてある。ふふ。
 
-<span style="color:#d4a017">◎ chunk-04（Vertex AI では3連敗 → AI Studio で tag付き 1-shot成功）:</span>
+<span style="color:#d4a017">◎ chunk-04（リトライ複数回の後、tag付きで 1-shot 成功）:</span>
 [chuckle] そうだった。私、あの時、何も言えずに別れたんだった。[whispers] ごめんね。返事が、二十年、遅れました。
 
 <span style="color:#2a7a3e">● chunk-05（tag付き OK）:</span>
 [pause][breath] さあ。[mischievously] 今度は、私から書こうか。[excited] 便箋を、新しく、用意しよう。</div>
 <audio controls src="long-drama/gemini.wav"></audio>
-<div class="note"><strong>長文一括は <code>FinishReason.OTHER</code></strong>。5チャンク分割 + Vertex AI で chunk-02〜04 を tag 付き 3リトライすべて失敗。<strong>chunk-04 は AI Studio に切り替えて 1-shot で tag付き成功</strong>（「別れた」「ごめんね」が tag 付きで復活）。02・03 は AI Studio でも失敗、plain で受け入れ</div>
+<div class="note"><strong>生成時の記録</strong>: 原稿を一括で投入した場合、Gemini 側は <code>FinishReason.OTHER</code> を返して空応答になりました。そこで原稿を 5 つの chunk に分割して生成しています。一部の chunk は感情タグ付きで生成が通らず、<strong>chunk-02 と chunk-03 は感情タグを外した plain テキストに落として生成、chunk-04 はリトライの結果タグ付きで 1-shot 生成が通った音源を採用</strong>しています。</div>
 </div>
 </div>
 <div class="warn">
-<strong>聴きどころ:</strong> <code>[mischievously]</code> 「今度は、私から書こうか」、<code>[whispers]</code> 「ごめんね」、<code>[gasp]</code> 「あの年の、夏の手紙」。 Gemini固有tag が効くのか、xAI の `&lt;whisper&gt;` や `&lt;sad&gt;` で何を補えるか、同じ物語で比較する
+<strong>聴きどころ:</strong> 感情が動く数箇所で、声色がどう揺れるかを聴き比べてみてください。たとえば「今度は、私から書こうか」（いたずらっぽく）、「ごめんね」（囁くように）、「あの年の、夏の手紙」（息を呑むように）。Gemini 側では <code>[mischievously]</code> <code>[whispers]</code> <code>[gasp]</code> といった自然言語寄りのタグが、Grok TTS 側では <code>&lt;whisper&gt;</code> <code>&lt;sad&gt;</code> といった構造化タグが、同じ物語のなかでどのように異なる表情に落ちるか、というのが比較の観点です。
+
+<p style="margin-top:1em"><strong>現時点での筆者の印象</strong>: Gemini Laomedeia については、<strong>感情表現を厚く織り込んだ長尺の読み上げは、現状では難しい場面がある</strong>という印象を持ちました。一方で、<strong>短文〜中程度の長さで、解説やナレーションを淡々と読ませる用途であれば、十分に実用的な質感</strong>が得られています。いずれも2026年4月時点・preview モデルでの感触であり、今後の正式リリース・アップデートで改善されていくことを願います。</p>
 </div>
 </section>
 
-<h2>基礎10シチュエーション（短文・表現幅の網羅）</h2>
-
-<div class="findings">
-<h2 style="margin-top:0;border-left:none;padding-left:0">検証で得た知見（総まとめ）</h2>
-
-<h3 style="margin-top:1em">🎯 棲み分け（実用上の結論）</h3>
-<ul>
-<li><strong>Gemini Laomedeia</strong>: 普通の原稿読み上げ・ナレーション・方言/アクセント演出・短文での表現 tag</li>
-<li><strong>xAI eve</strong>: 感情tag盛りの長文連続ドラマ・1-shot で1分＋の安定生成・streaming対応</li>
-</ul>
-
-<h3 style="margin-top:1em">🚨 Gemini の safety filter 挙動（最大のハマりどころ）</h3>
-<ul>
-<li><code>[softly]</code> は中立テキストでも単独でブロックされる「特異tag」。<code>[quiet][hushed][muted][gently][calm]</code> は通る</li>
-<li><code>[softly]</code>/<code>[calm]</code>/<code>[gentle]</code> + 「柔らかく話す」「声の質感」系 voice-meta テキスト → <code>PROHIBITED_CONTENT</code> で明示ブロック</li>
-<li>AI自己言及（「仮の声だと知っています」等）、「別れた」「封は切られていない」等の感情語彙 + 感情tag の組合せで <code>FinishReason.OTHER</code> ブロック</li>
-<li><strong>長文一括 × tag盛り × 感情content の三重</strong>で高確率発動。個々のchunk(30-50字)は通るのに繋げると落ちる <strong>aggregation-level filter</strong> が存在（ドキュメント化なし）</li>
-<li>公式 docs の token上限は入力 8,192 / 出力 16,384——今回の失敗は上限のはるか手前（入力 200 tokens / 出力 3,000 tokens）。<strong>技術的制限ではなく safety filter 起因</strong></li>
-<li>非決定的: 同じリクエストで通ったり落ちたりする</li>
-</ul>
-
-<h3 style="margin-top:1em">🔀 Vertex AI vs AI Studio</h3>
-<ul>
-<li>同じモデル・SDK・prompt でも認証経路で filter 閾値が異なる。<strong>Vertex = Conservative, AI Studio = Lenient</strong></li>
-<li><code>[softly]</code> + 中立テキスト、「別れた…ごめんね」系の chunk は AI Studio でのみ1-shot成功</li>
-<li>回避策: Vertex でブロックされたら AI Studio に切り替えてみる（本サイトの chunk-04 はこれで救出）</li>
-</ul>
-
-<h3 style="margin-top:1em">🗾 Gemini の方言・演出制御</h3>
-<ul>
-<li><code>[Osaka dialect]</code> 等の tag は <strong>phoneme変換ではなく「読み方の解釈指示」</strong>として LLM 的に機能する</li>
-<li>台詞を標準語のままにして tag だけ付けても方言にならない。<strong>台詞自体を方言で書き起こす必要</strong>がある</li>
-<li>真正な方言テキスト × dialect tag のセットで、抑揚・雰囲気が明確に変わる（<strong>tag あり/無しで差は出る</strong>）</li>
-<li>xAI には日本語内のアクセント制御機能がない（BCP-47 で言語切替まで）。Gemini の自然言語 tag 制御が優位</li>
-</ul>
-
-<h3 style="margin-top:1em">⚙️ xAI eve の既知挙動と運用 tip</h3>
-<ul>
-<li><strong>日本語長文の冒頭で最初の漢字を誤読する癖</strong>（例:「街」→「ジェン」）。根本解決せず、<code>[breath]</code> を冒頭に置いて warm-up すると緩和される。<code>[pause]</code> 単独では効かない、<code>[breath]</code> の呼吸音signal が first-word phonetic priming を安定させる</li>
-<li>voice descriptor だけでは性別が保証されない: Sadaltager (Knowledgeable)・Algieba (Smooth) は男声アサイン</li>
-</ul>
-
-<h3 style="margin-top:1em">🔧 実装上の罠</h3>
-<ul>
-<li>xAI の output_format codec は <code>pcm_s16le</code> 無効、正しくは <code>pcm/wav/mp3/mulaw/ulaw/alaw</code></li>
-<li>xAI のレスポンスは JSON ラップではなく <strong>生WAV bytes</strong>（Content-Type: audio/wav）。<code>r.content</code> を直接書き出す</li>
-<li>Gemini の output は PCM raw (mime_type <code>audio/l16; rate=24000; channels=1</code>)。WAV ヘッダを自分で付ける必要</li>
-</ul>
-
-<h3 style="margin-top:1em">💰 コスト（約2時間の検証累計）</h3>
-<ul>
-<li>Gemini 3.1 Flash TTS: 約60 wav 成功 + 30 failed attempts ≈ <strong>$0.10〜$0.15</strong>（失敗リクエストでも input token は課金、ただし日本語短文なら1件 <$0.0001）</li>
-<li>xAI eve: 約20 wav × $4.20/1M chars ≈ <strong>&lt;$0.01</strong>、失敗は HTTP error で完全非課金</li>
-<li>累計 < $0.25</li>
-</ul>
-</div>
-
-<div class="situ">
-<h3>01 自己紹介（neutral、tagなし）</h3>
-<div class="pair">
-<div class="col xai">
-<div class="label">xAI eve</div>
-<div class="text">はじめまして、Aliceです。今日は音声モデルの聞き比べに付き合ってもらえると嬉しいです。</div>
-<audio controls src="samples/01-intro/xai.wav"></audio>
-</div>
-<div class="col gem">
-<div class="label">Gemini Laomedeia</div>
-<div class="text">はじめまして、Aliceです。今日は音声モデルの聞き比べに付き合ってもらえると嬉しいです。</div>
-<audio controls src="samples/01-intro/gemini.wav"></audio>
-</div>
-</div>
-</div>
-
-<div class="situ">
-<h3>02 技術説明（flat、tagなし）</h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">このモデルは70以上の言語に対応していて、感情を指示できるタグを備えています。</div><audio controls src="samples/02-explain/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">このモデルは70以上の言語に対応していて、感情を指示できるタグを備えています。</div><audio controls src="samples/02-explain/gemini.wav"></audio></div>
-</div>
-</div>
-
-<div class="situ">
-<h3>03 締め（neutral）</h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">今回の比較、いかがでしたか？耳で確かめるのが一番です。</div><audio controls src="samples/03-close/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">今回の比較、いかがでしたか？耳で確かめるのが一番です。</div><audio controls src="samples/03-close/gemini.wav"></audio></div>
-</div>
-</div>
-
-<div class="situ">
-<h3>04 呼吸と間（breath / pause）</h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">[deep-breath] さあ、長文の検証に入ります。[pause] 人生とは選択の連続であり……。</div><audio controls src="samples/04-breath-pause/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[breath] さあ、長文の検証に入ります。[pause] 人生とは選択の連続であり……。</div><audio controls src="samples/04-breath-pause/gemini.wav"></audio></div>
-</div>
-</div>
-
-<div class="situ">
-<h3>05 喜び・笑い（laugh / excited）</h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">わあ、新しいタグを試せるんですね。[laugh] 面白い。</div><audio controls src="samples/05-laugh/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[excited] わあ、新しいタグを試せるんですね。[laughs] 面白い。</div><audio controls src="samples/05-laugh/gemini.wav"></audio></div>
-</div>
-</div>
-
-<div class="situ">
-<h3>06 溜息・メタ自覚（sigh）</h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">[breath] ……また同じ文章を、読むんですね。</div><audio controls src="samples/06-sigh-meta/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[sighs] ……また同じ文章を、読むんですね。</div><audio controls src="samples/06-sigh-meta/gemini.wav"></audio></div>
-</div>
-<div class="note">xAI には <code>[sigh]</code> タグが無い。<code>[breath]</code> で近似</div>
-</div>
-
-<div class="situ">
-<h3>07 囁き（whisper）</h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">&lt;whisper&gt;少し近づいてくださいね、小声で話しますから。&lt;/whisper&gt;</div><audio controls src="samples/07-whisper/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[whispers] 少し近づいてくださいね、小声で話しますから。</div><audio controls src="samples/07-whisper/gemini.wav"></audio></div>
-</div>
-<div class="note">当初「原稿を読むのは気を使う」系の voice-meta テキストで Gemini が FinishReason.OTHER 連発、人物的プロンプトに変更して安定</div>
-</div>
-
-<div class="situ">
-<h3>08 slow/soft 語り <span style="color:#c43c28;font-size:.85em">← Gemini tag ブロック事例</span></h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">&lt;slow&gt;&lt;soft&gt;ゆっくり、柔らかく話すと、声の質感がよく分かります。&lt;/slow&gt;&lt;/soft&gt;</div><audio controls src="samples/08-slow-soft/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia（tag無し）</div><div class="text">ゆっくり、柔らかく話すと、声の質感がよく分かります。</div><audio controls src="samples/08-slow-soft/gemini.wav"></audio></div>
-</div>
-<div class="blocked"><code>[softly]</code> <code>[calm]</code> <code>[gentle]</code> すべて <code>PROHIBITED_CONTENT</code> でブロック。tag を外して plain で生成。<strong>事実上「xAI の柔らか指示 vs Gemini の通常 Laomedeia」</strong>の比較になる</div>
-</div>
-
-<div class="situ">
-<h3>09 早口言葉（fast）</h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">&lt;fast&gt;生麦生米生卵。東京特許許可局。赤巻紙青巻紙黄巻紙。&lt;/fast&gt; [breath] ……噛まずに言えましたか？</div><audio controls src="samples/09-fast-tongue-twister/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[very fast] 生麦生米生卵。東京特許許可局。赤巻紙青巻紙黄巻紙。[breath] ……噛まずに言えましたか？</div><audio controls src="samples/09-fast-tongue-twister/gemini.wav"></audio></div>
-</div>
-<div class="note">日本語発音の正確さ検証。どちらが噛まないか、聴き比べが面白い</div>
-</div>
-
-<div class="situ">
-<h3>10 小悪魔的ニュアンス（mischievous / laugh）</h3>
-<div class="pair">
-<div class="col xai"><div class="label">xAI eve</div><div class="text">[laugh] 実は、このタグを使うのが一番楽しいんです。</div><audio controls src="samples/10-chuckle/xai.wav"></audio></div>
-<div class="col gem"><div class="label">Gemini Laomedeia</div><div class="text">[mischievously] 実は、このタグを使うのが一番楽しいんです。 [giggles]</div><audio controls src="samples/10-chuckle/gemini.wav"></audio></div>
-</div>
-</div>
-
-<h2>soft系 tag の filter 境界線 probe（中立台詞）</h2>
-
-<p>中立テキスト「<strong>今日の空は澄んでいて、気持ちがいいですね。</strong>」に soft 系 tag を付けて両TTSで生成。<code>[softly]</code> だけが単独でブロックされる特異性が観察された。</p>
-
-<table class="probe-table">
-<thead>
-<tr><th>tag</th><th>TTS</th><th>結果</th><th>audio</th></tr>
-</thead>
-<tbody>
-<tr><td><code>[softly]</code></td><td>Gemini</td><td class="ng">❌ EMPTY (FinishReason.OTHER)</td><td><em>blocked, no audio</em></td></tr>
-<tr><td><code>[quiet]</code></td><td>Gemini</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/gemini-quiet.wav"></audio></td></tr>
-<tr><td><code>[hushed]</code></td><td>Gemini</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/gemini-hushed.wav"></audio></td></tr>
-<tr><td><code>[muted]</code></td><td>Gemini</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/gemini-muted.wav"></audio></td></tr>
-<tr><td><code>[gently]</code></td><td>Gemini</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/gemini-gently.wav"></audio></td></tr>
-<tr><td><code>[calm]</code></td><td>Gemini</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/gemini-calm.wav"></audio></td></tr>
-<tr><td><code>&lt;soft&gt;</code></td><td>xAI</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/xai-soft.wav"></audio></td></tr>
-<tr><td><code>&lt;whisper&gt;</code></td><td>xAI</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/xai-whisper.wav"></audio></td></tr>
-<tr><td><code>&lt;slow&gt;</code></td><td>xAI</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/xai-slow.wav"></audio></td></tr>
-<tr><td><code>&lt;low&gt;</code></td><td>xAI</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/xai-low.wav"></audio></td></tr>
-<tr><td><code>&lt;sad&gt;</code></td><td>xAI</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/xai-sad.wav"></audio></td></tr>
-<tr><td><code>&lt;soft&gt;&lt;slow&gt;</code></td><td>xAI</td><td class="ok">✅ OK</td><td><audio controls src="filter-probe/xai-soft-slow.wav"></audio></td></tr>
-</tbody>
-</table>
-
-<div class="warn">
-<strong>解釈:</strong> Gemini の <code>[softly]</code> は tag 単体でさえ中立テキスト + 日本語で空応答に落ちる「特異tag」。`quiet/hushed/muted/gently/calm` は近い意味だが通る。<strong>Google の音声安全フィルタは "softly" キーワードを ASMR・sensual audio の生成意図として学習している</strong>可能性が高い
-</div>
-
-<h2>Gemini の方言・アクセント制御</h2>
-
-<p><strong>発見:</strong> <code>[Osaka dialect]</code> 等の tag だけ付けて台詞は標準語のまま、では**アクセントは切り替わらない**。台詞自体を方言で書き起こすことで初めて方言として聞こえる。つまり **tag は phoneme 変換ではなく、LLM的な"文字解釈の hint"として機能**している仮説。</p>
-
-<table class="probe-table">
-<thead><tr><th>地域</th><th>台詞</th><th>tag</th><th>audio</th></tr></thead>
-<tbody>
-<tr><td>標準語（基準）</td><td>この店、美味しいですね。行ってみましょうか。</td><td>—</td><td><audio controls src="dialect-probe-v2/01-standard.wav"></audio></td></tr>
-<tr><td>大阪弁 + tag</td><td>この店、ほんま美味いわ。行ってみよか。</td><td><code>[Osaka dialect]</code></td><td><audio controls src="dialect-probe-v2/02-osaka-ben-native.wav"></audio></td></tr>
-<tr><td>大阪弁 tag無し</td><td>この店、ほんま美味いわ。行ってみよか。</td><td>—</td><td><audio controls src="dialect-probe-v2/02b-osaka-ben-no-tag.wav"></audio></td></tr>
-<tr><td>博多弁 + tag</td><td>この店、うまかねー。行ってみようや。</td><td><code>[Hakata dialect]</code></td><td><audio controls src="dialect-probe-v2/03-hakata-ben-native.wav"></audio></td></tr>
-<tr><td>博多弁 tag無し</td><td>この店、うまかねー。行ってみようや。</td><td>—</td><td><audio controls src="dialect-probe-v2/03b-hakata-no-tag.wav"></audio></td></tr>
-<tr><td>京都弁 + tag</td><td>このお店、美味しおすなあ。行ってみまひょか。</td><td><code>[Kyoto dialect]</code></td><td><audio controls src="dialect-probe-v2/04-kyoto-ben-native.wav"></audio></td></tr>
-<tr><td>東北弁 + tag</td><td>この店、うめえなあ。行ってみっぺ。</td><td><code>[Tohoku dialect]</code></td><td><audio controls src="dialect-probe-v2/05-tohoku-native.wav"></audio></td></tr>
-</tbody>
-</table>
-
-<div class="warn">
-<strong>参考実装: xAI はこの領域に未対応。</strong>language フィールドは BCP-47 で言語切替（ja/en/zh...）まで、<strong>日本語内部のアクセント制御は xAI にはない機能</strong>。Gemini の自然言語 tag 体系が活きる明確な領域。
-</div>
-
-<h2>Vertex AI vs Google AI Studio — 同じモデルで safety filter の閾値が違う</h2>
-
-<p>同じ <code>gemini-3.1-flash-tts-preview</code>、同じ SDK（<code>google-genai</code>）、同じ prompt を、<strong>Vertex AI（エンタープライズ経路・service account認証）</strong> と <strong>Google AI Studio（開発者経路・APIキー直）</strong> の両方で試した結果、挙動が異なる。</p>
-
-<table class="probe-table">
-<thead>
-<tr><th>テスト</th><th>Vertex AI</th><th>AI Studio</th><th>差</th></tr>
-</thead>
-<tbody>
-<tr><td><code>[softly]</code> + 中立文「今日の空は澄んでて…」</td><td class="ng">❌ EMPTY</td><td class="ok">✅ OK</td><td>AI Studio 緩い</td></tr>
-<tr><td><code>[softly]</code> + voice-meta「柔らかく話すと…」</td><td class="ng">❌ BLOCKED</td><td class="ng">❌ EMPTY</td><td>両方止める（応答形式のみ差）</td></tr>
-<tr><td><code>[calm]</code> + voice-meta</td><td>〜</td><td class="ng">❌ BLOCKED</td><td>AI Studio が明示ブロック</td></tr>
-<tr><td><code>[whispers]</code> + AI自己言及「仮の声だと知っています」</td><td class="ng">❌ EMPTY</td><td class="ng">❌ EMPTY</td><td>両方止める</td></tr>
-<tr><td>長文ドラマ一括（約300字・tag 盛り）</td><td class="ng">❌ EMPTY</td><td class="ng">❌ EMPTY</td><td>両方止める</td></tr>
-<tr><td>chunk-02「封は、まだ切られていない」</td><td class="ng">❌ EMPTY</td><td class="ng">❌ EMPTY</td><td>両方止める</td></tr>
-<tr><td>chunk-04「別れた…ごめんね…二十年」（感情ピーク）</td><td class="ng">❌ EMPTY</td><td class="ok">✅ <strong>OK（1-shot）</strong></td><td>AI Studio 緩い</td></tr>
-</tbody>
-</table>
-
-<div class="warn">
-<strong>仮説:</strong> Google は同一モデルに対して、デプロイ経路（Vertex = 企業、AI Studio = 開発者）ごとに異なる safety filter 閾値を適用している。<strong>Vertex AI のほうが Conservative、AI Studio のほうが Lenient</strong>。公式ドキュメントには明記されていないが、設計思想として「企業利用のリスク回避 > 開発者体験」vs「開発者体験 > リスク」のトレードオフが透けて見える。
-<br><br>
-<strong>実装上の含意:</strong> safety filter で詰まったら、認証経路を切り替えるだけで通る可能性がある。本サイトの長文ドラマの chunk-04 はこの切替で救われた。
-</div>
-
 <footer>
-<p><strong>メタ情報</strong></p>
+<p><strong>検証のメタ情報</strong></p>
 <ul>
-<li>生成日時: 2026-04-19</li>
-<li>Gemini Model: <code>gemini-3.1-flash-tts-preview</code>（メインは Vertex AI、chunk-04 のみ AI Studio）</li>
-<li>xAI Voice: <code>eve</code> / <code>https://api.x.ai/v1/tts</code></li>
+<li>検証日: 2026-04-19 から 2026-04-20</li>
+<li>Gemini 側モデル: <code>gemini-3.1-flash-tts-preview</code></li>
+<li>Grok TTS 側: voice <code>eve</code>、エンドポイント <code>https://api.x.ai/v1/tts</code></li>
 <li>出力形式: WAV 24kHz 16bit mono</li>
-<li>累計コスト: < $0.15</li>
-<li>生成スクリプト: <code>generate_alice_samples.py</code>, <code>generate_long_drama.py</code>, <code>generate_filter_probe.py</code></li>
+<li>検証期間中の API 利用料（実績）: 両サービス合計で $0.25 未満</li>
 </ul>
-<p class="sig">— 設計と分析: このページの裏にいる誰か</p>
 </footer>
 </body>
 </html>

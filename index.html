@@ -55,6 +55,12 @@ audio { width: 100%; margin-top: .5em; }
 footer { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #ddd; color: #888; font-size: .85em; }
 code { background: #f0ede5; padding: .1em .35em; border-radius: 3px; font-size: .92em; }
 .sig { text-align: right; font-style: italic; color: #999; margin-top: 3em; font-size: .9em; }
+nav.toc { position: sticky; top: 0; background: rgba(253,253,251,.96); backdrop-filter: blur(6px); padding: .7em 0; border-bottom: 1px solid #ddd; margin: 1.2em 0 2em; z-index: 10; font-size: .87em; }
+nav.toc ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .5em 1.2em; }
+nav.toc a { color: #555; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: .15em; transition: color .15s, border-color .15s; }
+nav.toc a:hover { color: #c43c28; border-bottom-color: #c43c28; }
+h2 { scroll-margin-top: 4em; }
+h3 { scroll-margin-top: 4em; }
 </style>
 </head>
 <body>
@@ -73,10 +79,21 @@ code { background: #f0ede5; padding: .1em .35em; border-radius: 3px; font-size: 
 </aside>
 </header>
 
-<h2>基礎10シチュエーション（短文・表現幅の網羅）</h2>
+<nav class="toc" aria-label="目次">
+<ul>
+<li><a href="#findings">検証結果まとめ</a></li>
+<li><a href="#basic">基礎 10 シチュエーション</a></li>
+<li><a href="#dialect">方言・アクセント</a></li>
+<li><a href="#xai-ja-voices">xAI 日本語 voice</a></li>
+<li><a href="#long-sample">長尺サンプル</a></li>
+<li><a href="#notes">運用補足</a></li>
+</ul>
+</nav>
+
+<h2 id="basic">基礎10シチュエーション（短文・表現幅の網羅）</h2>
 
 <div class="findings">
-<h2 style="margin-top:0;border-left:none;padding-left:0">検証結果のまとめ</h2>
+<h2 id="findings" style="margin-top:0;border-left:none;padding-left:0">検証結果のまとめ</h2>
 
 <h3 style="margin-top:1em">検証項目サマリ</h3>
 
@@ -202,7 +219,7 @@ code { background: #f0ede5; padding: .1em .35em; border-radius: 3px; font-size: 
 </div>
 </div>
 
-<h2>Gemini の方言・アクセント制御</h2>
+<h2 id="dialect">Gemini の方言・アクセント制御</h2>
 
 <p><strong>観察</strong>: <code>[Osaka dialect]</code> のようなタグを付けても、台詞が標準語のままの場合、アクセントは切り替わりませんでした。台詞自体を方言で書き起こした上でタグを併用すると、標準語読みとは明確に異なる抑揚・雰囲気で読み上げられます。ここから、<strong>タグは音素レベルの変換を行っているのではなく、テキストをモデルがどう読み上げるかの解釈ヒントとして機能している</strong>、と理解しています。</p>
 
@@ -262,7 +279,7 @@ code { background: #f0ede5; padding: .1em .35em; border-radius: 3px; font-size: 
 
 <section class="hero" id="xai-ja-voices" style="background: linear-gradient(135deg,#eef2ff 0%,#f7f9ff 100%); border-color:#bcc8ee;">
 <span class="badge" style="background:#4a6cf7">xAI VOICES</span>
-<h2 style="margin-top:.3em">xAI の言語別 voice（日本語専用）と Eve の聴き比べ</h2>
+<h2 id="xai-ja-voices" style="margin-top:.3em">xAI の言語別 voice（日本語専用）と Eve の聴き比べ</h2>
 <p>2026-05-10 と 2026-05-11 の筆者実測では、xAI の <code>/v1/tts/voices</code> API から 141 件の voice オブジェクトが返りました。公式 docs で代表として紹介されている Ara / Eve / Leo / Rex / Sal は <code>language: multilingual</code> で、docs 掲載外の言語別 voice も同じ list に含まれていました。日本語専用としては Sakura（女声）/ Ren（男声）/ Haruto（男声）/ Hana（女声）の 4 件を確認しています。</p>
 <p>同じ短文「こんにちは。私の声を聴いてください。」を Eve と日本語専用 voice に読ませたサンプルを並べます。現時点の筆者主観では、Eve がもっとも日本語として自然に聴こえました。ただし、日本語専用 voice が list に入ってきていること自体は、今後の品質向上を追いたくなる動きです。</p>
 <div class="text">こんにちは。私の声を聴いてください。</div>
@@ -281,7 +298,7 @@ code { background: #f0ede5; padding: .1em .35em; border-radius: 3px; font-size: 
 </div>
 </section>
 
-<h2>長尺サンプル：ナレーションとドラマ</h2>
+<h2 id="long-sample">長尺サンプル：ナレーションとドラマ</h2>
 
 <p>ここまでの短文・probe ベースの検証に対して、長尺で通して聴いたときの印象は別の次元で差が出ます。参考として、約1分のナレーション（「街の朝」）と、感情タグを厚く織り込んだ約1分のドラマ（「二十年後の返事」）の2本を、両 TTS で並べて置いておきます。</p>
 
@@ -370,7 +387,7 @@ code { background: #f0ede5; padding: .1em .35em; border-radius: 3px; font-size: 
 </section>
 
 <section class="findings" id="operational-notes">
-<h2 style="margin-top:0;border-left:none;padding-left:0">公式 docs 上で確認できなかった点と、運用上の補足</h2>
+<h2 id="notes" style="margin-top:0;border-left:none;padding-left:0">公式 docs 上で確認できなかった点と、運用上の補足</h2>
 <ul>
 <li><strong><code>[softly]</code> タグと同義語タグの挙動</strong>: 2026-04-19 の <strong>中立短文での</strong> filter-probe 検証では、同じ意味域の <code>[quiet]</code> / <code>[hushed]</code> / <code>[muted]</code> / <code>[gently]</code> / <code>[calm]</code> が通過する一方、<code>[softly]</code> だけが単独でも一貫してブロックされる挙動が観測されました。2026-05-10 の再検証では、<code>[softly]</code> も中立短文では通る一方、感情負荷や声に関するメタ表現を含むテキストでは <code>FinishReason.OTHER</code> が返り、audio が破棄される場面がありました。さらに 2026-05-11 再検証では、<code>[calm]</code> / <code>[gentle]</code> は中立短文では通過し、slow/soft 文脈では <code>PROHIBITED_CONTENT</code> でブロックされることを確認しています。つまり、柔らかい声を指示する同義語タグは迂回策になり得ますが、テキスト負荷が高い文では同義語側も個別確認が必要です。</li>
 <li><strong>Gemini の長尺・感情タグ重畳時の失敗</strong>: 公式 docs に記載された token 上限（入力 8,192 / 出力 16,384）に達する前に失敗するケースが大半で、トークン上限ではなく safety filter 側の挙動に起因する失敗、と理解しています。chunk 単位では通る文字列でも一括投入で空応答になる場合があり、応答は完全には決定的ではありません。</li>

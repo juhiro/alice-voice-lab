@@ -79,6 +79,11 @@ h3 { scroll-margin-top: 4em; }
 </aside>
 </header>
 
+<figure style="margin: 2em 0; text-align: center;">
+  <img src="images/01-voice-dev-three-steps.png" alt="声が返る開発の3段階" style="max-width: 100%; height: auto; border-radius: 6px;">
+  <figcaption style="margin-top: .5em; color: #666; font-size: .9em;">図1. 声が返る開発を、ローカル通知から商用クラウド TTS 比較まで 3 段階で整理した図</figcaption>
+</figure>
+
 <nav class="toc" aria-label="目次">
 <ul>
 <li><a href="#findings">検証結果まとめ</a></li>
@@ -89,6 +94,11 @@ h3 { scroll-margin-top: 4em; }
 <li><a href="#notes">運用補足</a></li>
 </ul>
 </nav>
+
+<figure style="margin: 2em 0; text-align: center;">
+  <img src="images/04-alice-voice-lab-flow.png" alt="Alice Voice Lab 実測フロー" style="max-width: 100%; height: auto; border-radius: 6px;">
+  <figcaption style="margin-top: .5em; color: #666; font-size: .9em;">図2. Alice という同じペルソナと同じ日本語原稿を使い、Grok TTS と Gemini 3.1 Flash TTS の差を実際の音で確認した検証フロー</figcaption>
+</figure>
 
 <h2 id="basic">基礎10シチュエーション（短文・表現幅の網羅）</h2>
 
@@ -121,6 +131,11 @@ h3 { scroll-margin-top: 4em; }
 </table>
 
 <p><em>表1. 検証項目ごとの両 TTS サマリ（2026-04 の発表時点に Alice Voice Lab で実測した内容を起点に、2026-05-10 時点の公式 docs / API で再確認した結果を併記）</em></p>
+
+<figure style="margin: 2em 0; text-align: center;">
+  <img src="images/02-grok-gemini-tts-comparison.png" alt="Grok TTS と Gemini 3.1 Flash TTS の比較" style="max-width: 100%; height: auto; border-radius: 6px;">
+  <figcaption style="margin-top: .5em; color: #666; font-size: .9em;">図3. 表1の実測結果を、Grok TTS と Gemini 3.1 Flash TTS の設計思想の違いとして整理した図</figcaption>
+</figure>
 
 <p class="note">公式 docs 上で確認できなかった点や運用上の補足は、ページ後半の <a href="#operational-notes">補足セクション</a> にまとめています。</p>
 </div>
@@ -397,6 +412,11 @@ h3 { scroll-margin-top: 4em; }
 <li><strong>今回の検証で発生した API 利用料（実績）</strong>: 2026-04-19 〜 2026-04-20 の約2時間の検証で、両サービスを合わせた利用料の総額は $0.25 未満でした。内訳の概算は、Gemini 3.1 Flash TTS が $0.10 〜 $0.15（成功音声 約60本 + 失敗リクエスト 約30回を含む）、Grok TTS が $0.01 未満（音声 約20本、検証時の Beta 価格 $4.20 / 1M characters からの試算。2026-05-11 12:00 PM PT 以降は GA 移行で $15.00 / 1M characters へ）。失敗リクエスト時の課金挙動については両サービスとも公式 docs 上での明示的な記載を確認できておらず、上記の内訳は実際に発生した請求額の近似です。</li>
 </ul>
 </section>
+
+<figure style="margin: 2em 0; text-align: center;">
+  <img src="images/03-voice-ai-driven-development.png" alt="声が返る開発から音声AI駆動開発へ" style="max-width: 100%; height: auto; border-radius: 6px;">
+  <figcaption style="margin-top: .5em; color: #666; font-size: .9em;">図4. TTS 比較を入口として、リアルタイム音声対話とツール実行を組み合わせた開発環境へ進む流れ</figcaption>
+</figure>
 
 <footer>
 <p><strong>検証のメタ情報</strong></p>

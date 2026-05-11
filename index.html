@@ -74,7 +74,7 @@ h3 { scroll-margin-top: 4em; }
 <ul style="margin:.5em 0 0;padding-left:1.4em">
 <li>本ページは関連 Zenn 記事の付録ではなく、独立した <strong>音源比較ページ</strong> です。Zenn 記事を読まずにここから入っても、Alice ペルソナ・voice 選定・probe 設計の流れに沿って音源を聴き比べられます。</li>
 <li><strong>実測日</strong>: 2026-04-19 〜 2026-04-20。<strong>仕様再確認日</strong>: 2026-05-10（公式 docs および <code>/v1/tts/voices</code> / Gemini <code>generateContent</code> 経由の API 再確認）。xAI voice list は 2026-05-11 にも追加再確認。</li>
-<li><strong>現行 docs との差分</strong>: 2026-05-10 時点の公式 docs / API に基づき、xAI の voice 数（公式 docs では代表的な 5 voice を紹介、API では docs 掲載外の言語別 voice も返却）、日本語専用 voice（Sakura / Ren / Haruto / Hana）、リリース表記（Text to Speech Beta）、出力形式（WAV 指定時 / docs 既定 MP3 24 kHz 128 kbps）、Gemini 言語数（announce 70+、2026-05-10 docs 内対応言語表 78 件）、Gemini streaming の経路差分等を本文に反映済み。</li>
+<li><strong>現行 docs との差分</strong>: 2026-05-10 時点の公式 docs / API に基づき、xAI の voice 数（公式 docs では代表的な 5 voice を紹介、API では docs 掲載外の言語別 voice も返却）、日本語専用 voice（Sakura / Ren / Haruto / Hana）、リリース表記（執筆時点は Beta、2026-05-11 12:00 PM PT 以降は General Availability / $15.00 / 1M characters へ移行）、出力形式（WAV 指定時 / docs 既定 MP3 24 kHz 128 kbps）、Gemini 言語数（announce 70+、2026-05-10 docs 内対応言語表 78 件）、Gemini streaming の経路差分等を本文に反映済み。</li>
 </ul>
 </aside>
 </header>
@@ -113,8 +113,8 @@ h3 { scroll-margin-top: 4em; }
 <tr><td>対応言語</td><td>announce 時点で 70+ 言語（2026-05-10 時点の公式 docs 内対応言語表では 78 件を確認）</td><td>公式対応リストは 20 言語。リスト外言語も精度差を伴って生成可能との記載</td></tr>
 <tr><td>safety filter</td><td><code>[softly]</code> + 感情負荷や声に関するメタ表現を含む日本語テキストの組み合わせで <code>FinishReason.OTHER</code> が返る場面を観測。2026-05-11 再検証では、同義語タグ <code>[calm]</code> / <code>[gentle]</code> も中立短文では通過し、slow/soft 文脈では <code>PROHIBITED_CONTENT</code> となるテキスト依存性を確認</td><td>今回の検証範囲では filter 起因の失敗は観測されず</td></tr>
 <tr><td>streaming</td><td>Gemini API の <a href="https://ai.google.dev/gemini-api/docs/speech-generation"><code>generateContent</code> 経路</a>では非対応。<a href="https://docs.cloud.google.com/text-to-speech/docs/gemini-tts">Cloud Text-to-Speech Gemini-TTS</a> / Vertex AI API では streaming synthesis の記載あり</td><td>WebSocket 対応</td></tr>
-<tr><td>費用（1分朗読の試算）</td><td>≈ $0.030 / 分（Standard tier、日本語約 500 文字を 1 分相当と仮定）</td><td>≈ $0.0021 / 分（同仮定）</td></tr>
-<tr><td>リリース状態</td><td>preview（モデルID <code>gemini-3.1-flash-tts-preview</code>）</td><td>詳細 docs 上にリリース状態の明示的な記載なし。ただし <a href="https://x.ai/api/voice">x.ai/api/voice</a> の pricing 欄では <strong>Text to Speech Beta</strong> 表記を確認</td></tr>
+<tr><td>費用（1分朗読の試算）</td><td>≈ $0.030 / 分（Standard tier、日本語約 500 文字を 1 分相当と仮定）</td><td>≈ $0.0075 / 分（同仮定、2026-05-11 GA 移行後の $15.00 / 1M characters で再計算。Beta 時代は ≈ $0.0021 / 分）</td></tr>
+<tr><td>リリース状態</td><td>preview（モデルID <code>gemini-3.1-flash-tts-preview</code>）</td><td>執筆時点は <strong>Beta</strong>（2026-05-10）。2026-05-11 12:00 PM PT に <strong>General Availability</strong> へ移行（xAI 公式メール「Text to Speech API pricing update」 2026-05-11 受信、2026-05-12 時点で <a href="https://docs.x.ai/developers/models">docs.x.ai/developers/models</a> および <a href="https://x.ai/api/voice">x.ai/api/voice</a> の公開ページに同価格が反映されていることを確認）</td></tr>
 <tr><td>API エラー通知</td><td>HTTP 200 を返しつつ <code>finish_reason</code> / <code>block_reason</code> / 空 candidates で通知</td><td>HTTP 4xx / 5xx で即エラーボディ返却</td></tr>
 <tr><td>出力形式</td><td>PCM raw（<code>audio/l16; rate=24000; channels=1</code>）、WAV ヘッダは自前付与</td><td>本検証では <code>output_format</code> に WAV を明示指定して <code>audio/wav</code> を取得（公式 docs の既定は MP3 24 kHz / 128 kbps）</td></tr>
 </tbody>
@@ -280,7 +280,7 @@ h3 { scroll-margin-top: 4em; }
 <section class="hero" id="xai-ja-voices" style="background: linear-gradient(135deg,#eef2ff 0%,#f7f9ff 100%); border-color:#bcc8ee;">
 <span class="badge" style="background:#4a6cf7">xAI VOICES</span>
 <h2 id="xai-ja-voices" style="margin-top:.3em">xAI の言語別 voice（日本語専用）と Eve の聴き比べ</h2>
-<p>2026-05-10 と 2026-05-11 の筆者実測では、xAI の <code>/v1/tts/voices</code> API から 141 件の voice オブジェクトが返りました。公式 docs で代表として紹介されている Ara / Eve / Leo / Rex / Sal は <code>language: multilingual</code> で、docs 掲載外の言語別 voice も同じ list に含まれていました。日本語専用としては Sakura（女声）/ Ren（男声）/ Haruto（男声）/ Hana（女声）の 4 件を確認しています。</p>
+<p>2026-05-10 と 2026-05-11 の筆者実測では、xAI の <code>/v1/tts/voices</code> API から 141 件の voice オブジェクトが返りました。2026-04-30 に公開された <a href="https://x.ai/news/grok-custom-voices">Voice Library</a>（console 上の voice 管理ページ）に日本語フィルタを当てると、対応 voice は合計 9 件（Multilingual 対応の Ara / Eve / Leo / Rex / Sal の 5 件と、日本語専用の Sakura / Ren / Haruto / Hana の 4 件）が表示されます。本ページの聴き比べは代表 voice の Eve と日本語専用 4 件に絞っています。</p>
 <p>同じ短文「こんにちは。私の声を聴いてください。」を Eve と日本語専用 voice に読ませたサンプルを並べます。現時点の筆者主観では、Eve がもっとも日本語として自然に聴こえました。ただし、日本語専用 voice が list に入ってきていること自体は、今後の品質向上を追いたくなる動きです。</p>
 <div class="text">こんにちは。私の声を聴いてください。</div>
 <table class="probe-table">
@@ -394,7 +394,7 @@ h3 { scroll-margin-top: 4em; }
 <li><strong>Grok TTS の長文冒頭 warm-up</strong>: 原稿先頭に <code>[breath]</code> を挿入すると、冒頭トークンの初読不安定性は再現しないレベルまで緩和されます。<code>[pause]</code> 単独では同等の効果が認められなかったことから、呼吸音の音響的な手がかりが冒頭トークンの読みを安定させる役割を果たしている可能性がある、と現在は解釈しています。今後のモデルアップデートで改善されていくことを願います。</li>
 <li><strong>API エラーハンドリングの設計上の含意</strong>: Gemini は HTTP 200 を返しつつ失敗が通知される設計のため、SDK 側で <code>finish_reason</code> / <code>block_reason</code> / 空 candidates を総合判定する handling を最初から組んでおくのが無難です。HTTP ステータスだけに依存すると取りこぼします。Grok TTS 側は HTTP ステータスで成功・失敗が切り分けられます。</li>
 <li><strong>Gemini 側 voice descriptor の非保証</strong>: descriptor（Smooth / Mature / Bright 等）は話者の性別を保証する指標とはなっていませんでした。実際、Sadaltager（Knowledgeable）と Algieba（Smooth）は男声として、Despina（Smooth）・Gacrux（Mature）・Aoede（Breezy）・Laomedeia（Upbeat）は女声として音声が生成されています（descriptor 自体に性別属性が含まれているわけではなく、生成された音声の聴感上の性別分類です）。30 voice から voice を選ぶ際は、descriptor で当たりをつけ、短い 1 行を試聴して確認する 2 段の工程が実務上はほぼ必須です。</li>
-<li><strong>今回の検証で発生した API 利用料（実績）</strong>: 2026-04-19 〜 2026-04-20 の約2時間の検証で、両サービスを合わせた利用料の総額は $0.25 未満でした。内訳の概算は、Gemini 3.1 Flash TTS が $0.10 〜 $0.15（成功音声 約60本 + 失敗リクエスト 約30回を含む）、Grok TTS が $0.01 未満（音声 約20本、公式 pricing $4.20 / 1M characters からの試算）。失敗リクエスト時の課金挙動については両サービスとも公式 docs 上での明示的な記載を確認できておらず、上記の内訳は実際に発生した請求額の近似です。</li>
+<li><strong>今回の検証で発生した API 利用料（実績）</strong>: 2026-04-19 〜 2026-04-20 の約2時間の検証で、両サービスを合わせた利用料の総額は $0.25 未満でした。内訳の概算は、Gemini 3.1 Flash TTS が $0.10 〜 $0.15（成功音声 約60本 + 失敗リクエスト 約30回を含む）、Grok TTS が $0.01 未満（音声 約20本、検証時の Beta 価格 $4.20 / 1M characters からの試算。2026-05-11 12:00 PM PT 以降は GA 移行で $15.00 / 1M characters へ）。失敗リクエスト時の課金挙動については両サービスとも公式 docs 上での明示的な記載を確認できておらず、上記の内訳は実際に発生した請求額の近似です。</li>
 </ul>
 </section>
 
@@ -419,7 +419,8 @@ h3 { scroll-margin-top: 4em; }
 <li>xAI Grok TTS 公式 docs: <a href="https://docs.x.ai/developers/model-capabilities/audio/text-to-speech">docs.x.ai/developers/model-capabilities/audio/text-to-speech</a></li>
 <li>xAI models / pricing: <a href="https://docs.x.ai/developers/models">docs.x.ai/developers/models</a></li>
 <li>xAI 公式 announce: <a href="https://x.ai/news/grok-stt-and-tts-apis">x.ai/news/grok-stt-and-tts-apis</a></li>
-<li>xAI Voice playground (Text to Speech Beta 表記): <a href="https://x.ai/api/voice">x.ai/api/voice</a></li>
+<li>xAI Voice playground: <a href="https://x.ai/api/voice">x.ai/api/voice</a>（執筆時点は Beta 表記、2026-05-11 12:00 PM PT 以降は GA / $15.00 / 1M characters へ移行予定）</li>
+<li>xAI Custom Voices と Voice Library: <a href="https://x.ai/news/grok-custom-voices">x.ai/news/grok-custom-voices</a>（2026-04-30 発表、Custom Voices の voice cloning と built-in voice catalog の 80+ voices / 28 言語拡張）</li>
 <li>xAI Enterprise ToS: <a href="https://x.ai/legal/terms-of-service-enterprise">x.ai/legal/terms-of-service-enterprise</a></li>
 <li>xAI Brand Guidelines: <a href="https://x.ai/legal/brand-guidelines">x.ai/legal/brand-guidelines</a></li>
 <li>Irodori-TTS 500M v2-VoiceDesign model card: <a href="https://huggingface.co/Aratako/Irodori-TTS-500M-v2-VoiceDesign">huggingface.co/Aratako/Irodori-TTS-500M-v2-VoiceDesign</a></li>

@@ -86,6 +86,7 @@ h3 { scroll-margin-top: 4em; }
 <li><a href="#dialect">方言・アクセント</a></li>
 <li><a href="#xai-ja-voices">xAI 日本語 voice</a></li>
 <li><a href="#long-sample">長尺サンプル</a></li>
+<li><a href="#latency">生成 latency 実測</a></li>
 <li><a href="#notes">運用補足</a></li>
 </ul>
 </nav>
@@ -394,6 +395,20 @@ h3 { scroll-margin-top: 4em; }
 
 <p style="margin-top:1em"><strong>現時点での筆者の印象</strong>: Gemini Laomedeia については、感情表現を厚く織り込んだ長尺の読み上げは、現状では難しい場面があるという印象を持ちました。一方で、短文〜中程度の長さで、解説やナレーションを淡々と読ませる用途であれば、十分に実用的な質感が得られています。いずれも 2026 年 4 月時点・preview モデルでの感触であり、今後の正式リリース・アップデートで改善されていくことを願います。</p>
 </div>
+</section>
+
+<section class="findings" id="latency-probe">
+<h2 id="latency" style="margin-top:0;border-left:none;padding-left:0">生成 latency の実測（2026-05-12）</h2>
+<p>同一の中立短文「今日の空は澄んでいて、気持ちがいいですね。」(21 字) を、Grok TTS（<code>voice=eve</code> / WAV 24 kHz / <code>/v1/tts</code> REST）と Gemini 3.1 Flash TTS（<code>voice=Laomedeia</code> / Vertex AI <code>generate_content</code>）のそれぞれに、sequential に 3 回送信した結果を記載します。</p>
+<table class="probe-table summary-table" style="margin:.6em 0">
+<thead><tr><th>trial</th><th>Grok TTS (eve, WAV)</th><th>Gemini 3.1 Flash TTS (Laomedeia, Vertex)</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>2.54s</td><td>3.10s</td></tr>
+<tr><td>2</td><td>1.50s</td><td>2.63s</td></tr>
+<tr><td>3</td><td>1.75s</td><td>2.90s</td></tr>
+<tr><td><em>平均 (n=3)</em></td><td>1.93s</td><td>2.87s</td></tr>
+</tbody>
+</table>
 </section>
 
 <section class="findings" id="operational-notes">
